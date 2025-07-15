@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SUJO CTF - Challenge Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #00d9ff;
+    }
+
+    #usernamePrompt, #chatUI {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #usernamePrompt.active, #chatUI.active {
+      display: flex;
+    }
+
+    input[type=text] {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px;
+      background-color: #00d9ff;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #00aacc;
+    }
+
+    #messages {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .message {
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 8px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .username-tag {
+      color: #00d9ff;
+      font-weight: 600;
+    }
+
+    .timestamp {
+      float: right;
+      font-size: 0.8em;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="usernamePrompt" class="active">
+      <h2>Enter your Username</h2>
+      <input type="text" id="usernameInput" placeholder="e.g. Hacker123" />
+      <button onclick="setUsername()">Join Chat</button>
+    </div>
+
+    <div id="chatUI">
+      <h2>Challenge Chat</h2>
+      <div id="messages"></div>
+      <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    let username = "";
+
+    function setUsername() {
+      const input = document.getElementById('usernameInput');
+      if (input.value.trim() !== "") {
+        username = input.value.trim();
+        document.getElementById('usernamePrompt').classList.remove('active');
+        document.getElementById('chatUI').classList.add('active');
+        loadMessages();
+      }
+    }
+
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+      if (message === "") return;
+      const chatData = {
+        username: username,
+        message: message,
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      let existing = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+      existing.push(chatData);
+      localStorage.setItem('chatMessages', JSON.stringify(existing));
+      messageInput.value = "";
+      loadMessages();
+    }
+
+    function loadMessages() {
+      const messageDiv = document.getElementById('messages');
+      messageDiv.innerHTML = "";
+      const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+      messages.forEach(m => {
+        const el = document.createElement('div');
+        el.className = 'message';
+        el.innerHTML = `<span class='username-tag'>${m.username}:</span> ${m.message} <span class='timestamp'>${m.timestamp}</span>`;
+        messageDiv.appendChild(el);
+      });
+      messageDiv.scrollTop = messageDiv.scrollHeight;
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+  </script>
+</body>
+</html>
